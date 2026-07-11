@@ -27,9 +27,9 @@ enum {
 
 // Reverse engineered from Hypervisor.framework.
 // See _hv_vm_config_set_isa, _hv_vm_config_get_isa, and Hv::Vcpu::is_vmapple
-// Default ISA is 1, Apple private is 3
+// Default ISA is 1, vmapple (macOS VM) level is 3, Apple private is 4
 // 2 is also an allowed ISA, but no idea what that does. Trying to access an Apple reg with isa=2 acts the same as isa=1 (unknown MSR)
-#define ISA_VMAPPLE_PRIVATE    3
+#define ISA_VMAPPLE_PRIVATE   4
 
 #define KBASE 0x40000000
 
@@ -62,6 +62,13 @@ void *cpu_handler(void *_unused) {
 
   rv = hv_vcpu_create(&cpu0, &cpu0_exit, cpu0_cfg);
   check("hv_vcpu_create", rv);
+
+  _hv_vcpu_get_control_field(cpu0, 0, &ctrl_val);
+  ctrl_val &= 0xffffffffffefffff;
+  _hv_vcpu_set_control_field(cpu0, 0, ctrl_val);
+  _hv_vcpu_get_control_field(cpu0, 9, &ctrl_val);
+  ctrl_val = 0xffffffffffffffff;
+  _hv_vcpu_set_control_field(cpu0, 9, ctrl_val);
 
   rv = hv_vcpu_set_trap_debug_exceptions(cpu0, true);
   check("set debug trap", rv);
