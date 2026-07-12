@@ -12,6 +12,8 @@
 
 #define BIT(n) (( 1ull << ((n)) ))
 
+#define ISA_PRIVATE            4
+
 #define CPSR_ENABLE_SS         BIT(21)
 #define CPSR_MODE_EL1          BIT(0) | BIT(2)
 #define CPSR_IGNORE_INTS       BIT(6) | BIT(7) | BIT(8)
@@ -20,23 +22,23 @@
 #define MDSCR_MDE              BIT(15)
 #define MDSCR_KDE              BIT(13)
 
-// What we know about the hypervisor control fields thus far:
-enum {
-  HV_CTRL_TRAP_DEBUG_MODE = 2, // 0x100 = trap debug exceptions, 0x200 = trap debug registers
-} hv_control_field_t;
-
-// Reverse engineered from Hypervisor.framework.
-// See _hv_vm_config_set_isa, _hv_vm_config_get_isa, and Hv::Vcpu::is_vmapple
-// Default ISA is 1, Apple private is 3
-// 2 is also an allowed ISA, but no idea what that does. Trying to access an Apple reg with isa=2 acts the same as isa=1 (unknown MSR)
-#define ISA_VMAPPLE_PRIVATE    3
+#define HCR_EL2_TIDCP          BIT(20)
+#define HACR_EL2_PERM_ALL      ((uint64_t)(-1ull))
 
 #define KBASE 0x40000000
 
-extern uint64_t    _hv_vm_config_get_isa(hv_vm_config_t);
-extern hv_return_t _hv_vm_config_set_isa(hv_vm_config_t, uint64_t);
-extern hv_return_t _hv_vcpu_set_control_field(hv_vcpu_t, uint64_t, uint64_t);
-extern hv_return_t _hv_vcpu_get_control_field(hv_vcpu_t, uint64_t, uint64_t*);
+extern uint64_t     _hv_vm_config_get_isa(hv_vm_config_t);
+extern hv_return_t  _hv_vm_config_set_isa(hv_vm_config_t, uint64_t);
+extern hv_return_t  _hv_vcpu_set_control_field(hv_vcpu_t, uint64_t, uint64_t);
+extern hv_return_t  _hv_vcpu_get_control_field(hv_vcpu_t, uint64_t, uint64_t*);
+extern void        *_hv_vcpu_get_context(hv_vcpu_t);
+extern void         _hv_capability(uint32_t idx, int64_t *);
+
+enum {
+  HV_CTRL_HCR_EL2          =  0,
+  HV_CTRL_TRAP_DEBUG_MODE  =  2, // 0x100 = trap debug exceptions, 0x200 = trap debug registers
+  HV_CTRL_HACR_EL2         =  9,
+} hv_control_field_t;
 
 struct mmap_t {
   void   *buf;
@@ -50,13 +52,28 @@ void check(const char *fn_name, hv_return_t rv) {
   }
 }
 
+hv_return_t enable_impdef_extensions(hv_vcpu_t cpu) {
+  hv_return_t rv;
+  uint64_t ctrl_val;
+
+  rv = _hv_vcpu_get_control_field(cpu, HV_CTRL_HCR_EL2, &ctrl_val);
+  check("_hv_vcpu_get_control_field HCR_EL2", rv);
+
+  rv = _hv_vcpu_set_control_field(cpu, HV_CTRL_HCR_EL2, ctrl_val & ~HCR_EL2_TIDCP);
+  check("_hv_vcpu_set_control_field HCR_EL2", rv);
+
+  rv = _hv_vcpu_set_control_field(cpu, HV_CTRL_HACR_EL2, HACR_EL2_PERM_ALL);
+  check("_hv_vcpu_set_control_field HACR_EL2", rv);
+
+  return HV_SUCCESS;
+}
+
 void *cpu_handler(void *_unused) {
   regs_t r;
   hv_return_t rv;
   hv_vcpu_t cpu0;
   hv_vcpu_config_t cpu0_cfg;
   hv_vcpu_exit_t *cpu0_exit;
-  uint64_t ctrl_val;
 
   cpu0_cfg = hv_vcpu_config_create();
 
@@ -76,15 +93,8 @@ void *cpu_handler(void *_unused) {
   rv = hv_vcpu_set_reg(cpu0, HV_REG_CPSR, CPSR_ENABLE_SS | CPSR_MODE_EL1 | CPSR_IGNORE_INTS);
   check("set initial cpsr", rv);
 
-  // This disables the MSRs all together, as though we were in isa=1
-  // rv = _hv_vcpu_set_control_field(cpu0, 0, 0x00100000);
-
-  // @TODO: set correct hv control field(s) to enable sprr/ gxf registers within the VM
-
-  for (size_t i = 0; i < 0x12; i++) {
-    _hv_vcpu_get_control_field(cpu0, i, &ctrl_val);
-    printf("ctrl %zu: 0x%llX\n", i, ctrl_val);
-  }
+  rv = enable_impdef_extensions(cpu0);
+  check("enable_impdef_extensions", rv);
 
   for (size_t i = 0; i < 3; i++) {
     hv_vcpu_run(cpu0);
@@ -98,14 +108,15 @@ void *cpu_handler(void *_unused) {
     printf("debug syndrome: 0x%llX\n", cpu0_exit->exception.syndrome);
   }
 
-  if (r.pc == 0x200 || cpu0_exit->exception.syndrome == 0x6231BC02) {
-    printf("failed to access sprr_config_el1\n");
-    exit(0);
-  } else {
+  if (r.pc == KBASE + 8) {
     fprintf(stderr, "successfully accessed sprr_config_el1\n");
     exit(1);
+  } else {
+    printf("failed to access sprr_config_el1\n");
+    exit(0);
   }
 
+  hv_vcpu_destroy(cpu0);
   os_release(cpu0_cfg);
   return NULL;
 }
@@ -155,7 +166,8 @@ int main(int argc, char **argv) {
   rv = hv_vm_config_set_el2_enabled(cfg, false);
   check("set el2", rv);
 
-  _hv_vm_config_set_isa(cfg, ISA_VMAPPLE_PRIVATE);
+  rv = _hv_vm_config_set_isa(cfg, ISA_PRIVATE);
+  check("_hv_vm_config_set_isa", rv);
 
   rv = hv_vm_create(cfg);
   check("hv_vm_create", rv);
