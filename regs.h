@@ -43,6 +43,43 @@ typedef struct {
   uint64_t  esr;
   uint64_t  sp_el0;
   uint64_t  sp_el1;
+
+  uint64_t  sprr_config_el1;
+  uint64_t  sprr_amrange_el1;
+  uint64_t  sprr_pperm_el1;
+  uint64_t  sprr_pperm_el2;
+  uint64_t  sprr_uperm_el0;
+  uint64_t  sprr_pmprr_el1;
+  uint64_t  sprr_umprr_el1;
+  uint64_t  sprr_pperm_sh01_el1;
+  uint64_t  sprr_pperm_sh02_el1;
+  uint64_t  sprr_pperm_sh03_el1;
+  uint64_t  sprr_pperm_sh04_el1;
+  uint64_t  sprr_pperm_sh05_el1;
+  uint64_t  sprr_pperm_sh06_el1;
+  uint64_t  sprr_pperm_sh07_el1;
+  uint64_t  sprr_uperm_sh01_el1;
+  uint64_t  sprr_uperm_sh02_el1;
+  uint64_t  sprr_uperm_sh03_el1;
+  uint64_t  sprr_uperm_sh04_el1;
+  uint64_t  sprr_uperm_sh05_el1;
+  uint64_t  sprr_uperm_sh06_el1;
+  uint64_t  sprr_uperm_sh07_el1;
+
+  uint64_t  gxf_config_el1;
+  uint64_t  gxf_entry_el1;
+  uint64_t  gxf_pabentry_el1;
+
+  uint64_t  sp_gl1;
+  uint64_t  tpidr_gl1;
+  uint64_t  aspsr_gl1;
+  uint64_t  vbar_gl1;
+  uint64_t  far_gl1;
+  uint64_t  esr_gl1;
+  uint64_t  elr_gl1;
+  uint64_t  spsr_gl1;
+  uint64_t  pmcr1_gl1;
+  uint64_t  afsr1_gl1;
 } regs_t;
 
 void get_regs(hv_vcpu_t cpu, regs_t *regs);

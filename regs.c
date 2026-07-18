@@ -1,3 +1,5 @@
+#include <Hypervisor/Hypervisor.h>
+#include "hv_private.h"
 #include <stdio.h>
 #include <inttypes.h>
 #include "regs.h"
@@ -44,6 +46,43 @@ void get_regs(hv_vcpu_t cpu, regs_t *r) {
   hv_vcpu_get_sys_reg(cpu, HV_SYS_REG_ESR_EL1, &r->esr);
   hv_vcpu_get_sys_reg(cpu, HV_SYS_REG_SP_EL0,  &r->sp_el0);
   hv_vcpu_get_sys_reg(cpu, HV_SYS_REG_SP_EL1,  &r->sp_el1);
+
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_CONFIG_EL1,      &r->sprr_config_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_AMRANGE_EL1,     &r->sprr_amrange_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_EL1,       &r->sprr_pperm_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_EL2,       &r->sprr_pperm_el2);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UPERM_EL0,       &r->sprr_uperm_el0);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PMPRR_EL1,       &r->sprr_pmprr_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UMPRR_EL1,       &r->sprr_umprr_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_SH01_EL1,  &r->sprr_pperm_sh01_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_SH02_EL1,  &r->sprr_pperm_sh02_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_SH03_EL1,  &r->sprr_pperm_sh03_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_SH04_EL1,  &r->sprr_pperm_sh04_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_SH05_EL1,  &r->sprr_pperm_sh05_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_SH06_EL1,  &r->sprr_pperm_sh06_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_PPERM_SH07_EL1,  &r->sprr_pperm_sh07_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UPERM_SH01_EL1,  &r->sprr_uperm_sh01_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UPERM_SH02_EL1,  &r->sprr_uperm_sh02_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UPERM_SH03_EL1,  &r->sprr_uperm_sh03_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UPERM_SH04_EL1,  &r->sprr_uperm_sh04_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UPERM_SH05_EL1,  &r->sprr_uperm_sh05_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UPERM_SH06_EL1,  &r->sprr_uperm_sh06_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPRR_UPERM_SH07_EL1,  &r->sprr_uperm_sh07_el1);
+
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_GXF_CONFIG_EL1,       &r->gxf_config_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_GXF_ENTRY_EL1,        &r->gxf_entry_el1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_GXF_PABENTRY_EL1,     &r->gxf_pabentry_el1);
+
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SP_GL1,               &r->sp_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_TPIDR_GL1,            &r->tpidr_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_ASPSR_GL1,            &r->aspsr_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_VBAR_GL1,             &r->vbar_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_FAR_GL1,              &r->far_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_ESR_GL1,              &r->esr_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_ELR_GL1,              &r->elr_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_SPSR_GL1,             &r->spsr_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_PMCR1_GL1,            &r->pmcr1_gl1);
+  hv_vcpu_get_sys_reg(cpu,  HV_SYS_REG_AFSR1_GL1,            &r->afsr1_gl1);
 }
 
 void dump_regs(regs_t *r) {
@@ -57,30 +96,36 @@ void dump_regs(regs_t *r) {
   printf("CPSR: 0x%016llX     ",   r->cpsr);
   printf("FAR:  0x%016llX     ",   r->far);
   printf("ESR:  0x%016llX\n",      r->esr);
+  printf("ELRG: 0x%016llX     ",   r->elr_gl1);
+  printf("FARG: 0x%016llX     ",   r->far_gl1);
+  printf("ESRG: 0x%016llX\n",      r->esr_gl1);
+  printf("SPRR_CONFIG:  0x%016llX\n", r->sprr_config_el1);
+  printf("GXF_CONFIG:   0x%016llX\n", r->gxf_config_el1);
+  printf("GXF_ENTRY_EL1:0x%016llX\n", r->gxf_entry_el1);
 #ifdef DUMP_ALL
-  printf("X4:  0x%016llX     ", r->x4);
-  printf("X5:  0x%016llX     ", r->x5);
-  printf("X6:  0x%016llX     ", r->x6);
-  printf("X7:  0x%016llX\n",    r->x7);
-  printf("X8:  0x%016llX     ", r->x8);
-  printf("X9:  0x%016llX     ", r->x9);
-  printf("X10: 0x%016llX     ", r->x10);
-  printf("X11: 0x%016llX\n",    r->x11);
-  printf("X12: 0x%016llX     ", r->x12);
-  printf("X13: 0x%016llX     ", r->x13);
-  printf("X14: 0x%016llX     ", r->x14);
-  printf("X15: 0x%016llX\n",    r->x15);
-  printf("X16: 0x%016llX     ", r->x16);
-  printf("X17: 0x%016llX     ", r->x17);
-  printf("X18: 0x%016llX     ", r->x18);
-  printf("X19: 0x%016llX\n",    r->x19);
-  printf("X20: 0x%016llX     ", r->x20);
-  printf("X21: 0x%016llX     ", r->x21);
-  printf("X22: 0x%016llX     ", r->x22);
-  printf("X23: 0x%016llX\n",    r->x23);
-  printf("X24: 0x%016llX     ", r->x24);
-  printf("X25: 0x%016llX     ", r->x25);
-  printf("X26: 0x%016llX     ", r->x26);
-  printf("X27: 0x%016llX\n",    r->x27);
+  printf("X4:   0x%016llX     ", r->x4);
+  printf("X5:   0x%016llX     ", r->x5);
+  printf("X6:   0x%016llX     ", r->x6);
+  printf("X7:   0x%016llX\n",    r->x7);
+  printf("X8:   0x%016llX     ", r->x8);
+  printf("X9:   0x%016llX     ", r->x9);
+  printf("X10:  0x%016llX     ", r->x10);
+  printf("X11:  0x%016llX\n",    r->x11);
+  printf("X12:  0x%016llX     ", r->x12);
+  printf("X13:  0x%016llX     ", r->x13);
+  printf("X14:  0x%016llX     ", r->x14);
+  printf("X15:  0x%016llX\n",    r->x15);
+  printf("X16:  0x%016llX     ", r->x16);
+  printf("X17:  0x%016llX     ", r->x17);
+  printf("X18:  0x%016llX     ", r->x18);
+  printf("X19:  0x%016llX\n",    r->x19);
+  printf("X20:  0x%016llX     ", r->x20);
+  printf("X21:  0x%016llX     ", r->x21);
+  printf("X22:  0x%016llX     ", r->x22);
+  printf("X23:  0x%016llX\n",    r->x23);
+  printf("X24:  0x%016llX     ", r->x24);
+  printf("X25:  0x%016llX     ", r->x25);
+  printf("X26:  0x%016llX     ", r->x26);
+  printf("X27:  0x%016llX\n",    r->x27);
 #endif // DUMP_ALL
 }

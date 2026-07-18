@@ -11,6 +11,42 @@ Build & run:
 1. `make`
 2. `./hvf_gxf`
 
+# Expected Output
+
+```
+[✅] 0: enable_sprr (Enable SPRR)
+[✅] 1: enable_gxf (Enable GXF)
+[✅] 2: gxf_without_sprr (GXF crashes without SPRR enabled first)
+[✅] 3: vmtest (Virtual memory)
+[✅] 4: simple_genter (Enter GL1)
+[✅] 5: gxf_sp (Does GL1 use a different stack pointer than EL1?)
+
+    SPRR Permissions
+╭─────┬───────┬───────╮
+│     │  GL1  │  EL1  │
+│     │ R W X │ R W X │
+├─────┼───────┼───────┤
+│  0  │ 0 0 0 │ 0 0 0 │
+│  1  │ 0 0 0 │ 1 0 1 │
+│  2  │ 0 0 0 │ 1 0 0 │
+│  3  │ 0 0 0 │ 1 1 0 │
+│  4  │ 1 0 1 │ 0 0 0 │
+│  5  │ 1 0 1 │ 1 0 1 │
+│  6  │ 1 0 1 │ 1 0 0 │
+│  7  │ 1 0 1 │ 0 0 0 │
+│  8  │ 1 0 0 │ 0 0 0 │
+│  9  │ 1 0 0 │ 0 0 1 │
+│  A  │ 1 0 0 │ 1 0 0 │
+│  B  │ 1 0 0 │ 1 1 0 │
+│  C  │ 1 1 0 │ 0 0 0 │
+│  D  │ 1 1 0 │ 1 0 1 │
+│  E  │ 1 1 0 │ 1 0 0 │
+│  F  │ 1 1 0 │ 1 1 0 │
+╰─────┴───────┴───────╯
+[✅] 6: sprr_test (Identify SPRR bit meanings)
+7 of 7 tests pass
+```
+
 Notes
 - cpsr follows spsr encoding; use this to set pstate bits (ofc cpsr isn't a real reg in aarch64)
 - Need to set EL in cpsr before running first instruction

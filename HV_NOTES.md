@@ -102,3 +102,42 @@ accessed, bit 59 is set. If GXF is accessed, bit 58 is set.
 You can retrieve the context buffer with `_hv_vcpu_get_context`.
 
 This page is shared with the kernel, see `hv_vcpu_save_state_with_mask`.
+
+## System Registers
+
+`hv_vcpu_types.h` declares the `hv_sys_reg` enum, which defines constants
+representing various system registers we can read and write with
+`hv_vcpu_get/set_sys_reg`. These encodings are not random- they are just the 5
+system register fields packed together into a `uint16_t`:
+
+```c
+#define PACK_SYSREG(op0,op1,crn,crm,op2) (( (((op0)) << 14) | (((op1)) << 11) | (((crn)) << 7) | (((crm)) << 3) | ((op2)) ))
+```
+
+You can use this formula to generate new valid sysreg constants for registers
+not defined in `hv_vcpu_types.h` (like the SPRR/ GXF registers), letting you
+use `hv_vcpu_get/set_sys_reg` to interact with private ISA registers through
+the public API.
+
+For example, `HV_SYS_REG_SP_EL1` is `0xE208`. The `sp_el1` sysreg has encoding
+`S3_4_c4_c1_0`. Using the formula we can derive the HV encoding from the sysreg
+encoding:
+
+```
+(3 << 14) | (4 << 11) | (4 << 7) | (1 << 3) | (0) = 0xE208
+```
+
+You can also read a system register from the context buffer if you know its
+offset. For example, to read `sprr_config_el1` (which has offset `+0x950`),
+use:
+
+```c
+uint8_t *cb = _hv_vcpu_get_context(cpu0);
+printf("sprr_config_el1: 0x%llX\n", *((uint64_t*)&cb[0x950]));
+```
+
+Figuring out struct offsets is pretty easy. For example, to learn that
+`sprr_config_el1` is at `+0x950` into the context struct, you can disassemble
+`HvCore::Hypervisor::VcpuStateManager::get_sprr_config_el1`. It's way easier
+(and more stable) to just use the formula above to get a constant representing
+the sysreg you want and use `hv_vcpu_get/set_sys_reg` instead though.
